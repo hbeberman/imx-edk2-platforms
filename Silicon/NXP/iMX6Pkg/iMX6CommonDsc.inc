@@ -924,6 +924,11 @@
   Silicon/NXP/iMXPlatformPkg/Drivers/SdhcDxe/SdhcDxe.inf
 
   #
+  # Manufacturing
+  #
+  Silicon/NXP/iMXPlatformPkg/Drivers/Provisioning/Provisioning.inf
+
+  #
   # USB Stack
   #
 !if $(CONFIG_USB) == TRUE
