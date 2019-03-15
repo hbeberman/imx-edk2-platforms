@@ -14,6 +14,10 @@
 #include <Protocol/TcgService.h>
 #include <Protocol/Tcg2Protocol.h>
 
+// This depends on the fTPM implementation. The full response should be sent out
+//  and the host side should be responsible for parsing and truncating it.
+#define EKCERT_SZ 326
+
 EFI_STATUS
 EFIAPI
 ProvisioningInitialize (
@@ -49,10 +53,11 @@ ProvisioningInitialize (
   }
 
   DEBUG((DEBUG_ERROR, "%a: EK Certificate retrieved from TPM\n", __FUNCTION__));
-  for(int x = sizeof(TPM2_RESPONSE_HEADER); x < SwapBytes32(resp_header->paramSize); x+=4) {
-    DEBUG((DEBUG_ERROR, "%02x%02x%02x%02x\n", tpm_out[x+0], tpm_out[x+1], tpm_out[x+2], tpm_out[x+3]));
+  DEBUG((DEBUG_ERROR, "MFG:ekcertstart\n"));
+  for(int x = sizeof(TPM2_RESPONSE_HEADER); x < SwapBytes32(resp_header->paramSize) && x < EKCERT_SZ; x++) {
+    DEBUG((DEBUG_ERROR, "%02x\n", tpm_out[x]));
   }
-
+  DEBUG((DEBUG_ERROR, "MFG:ekcertend\n"));
   DEBUG((DEBUG_ERROR, "%a exit\n", __FUNCTION__));
   return Status;
 }
