@@ -498,6 +498,10 @@ GetImx6SerialNumber (
   return ProcessorSerialNumber;
 }
 
+// {72096f5b-2ac7-4e6d-a7bb-bf947d673415}
+EFI_GUID ProvisioningGuid =
+{ 0x72096f5b, 0x2ac7, 0x4e6d, { 0xa7, 0xbb, 0xbf, 0x94, 0x7d, 0x67, 0x34, 0x15 } };
+
 STATIC CONST CHAR16          mSystemSerialNumber[] = L"SystemSerialNumber";
 STATIC CONST CHAR8           SystemSerialNumber[] = "SerialNumberFromUEFIVars\0";
 
@@ -519,7 +523,7 @@ RetrieveSmbiosVariable (
   DataSize = 0;
   Status = gRT->GetVariable (
                   (CHAR16 *) VariableName,
-                  &gEfiCallerIdGuid,
+                  &ProvisioningGuid,
                   NULL,
                   &DataSize,
                   NULL
@@ -533,7 +537,7 @@ RetrieveSmbiosVariable (
 
     Status = gRT->GetVariable (
                     (CHAR16 *) VariableName,
-                    &gEfiCallerIdGuid,
+                    &ProvisioningGuid,
                     NULL,
                     &DataSize,
                     Data
@@ -565,7 +569,7 @@ StoreSmbiosVariable (
 
   Status = gRT->SetVariable (
                   (CHAR16 *)VariableName,
-                  &gEfiCallerIdGuid,
+                  &ProvisioningGuid,
                   EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS,
                   AsciiStrLen(VariableString)+1,
                   (VOID *)VariableString

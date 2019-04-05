@@ -11,6 +11,7 @@
 #include <Library/UefiBootServicesTableLib.h>
 #include <Library/UefiRuntimeServicesTableLib.h>
 #include <Library/MemoryAllocationLib.h>
+#include <Library/TimeBaseLib.h>
 
 #include <Library/SerialPortLib.h>
 
@@ -23,6 +24,12 @@
 #define TPMIN_SZ 14
 #define TPMOUT_SZ 1000
 
+
+// {72096f5b-2ac7-4e6d-a7bb-bf947d673415}
+EFI_GUID ProvisioningGuid =
+{ 0x72096f5b, 0x2ac7, 0x4e6d, { 0xa7, 0xbb, 0xbf, 0x94, 0x7d, 0x67, 0x34, 0x15 } };
+
+STATIC CONST CHAR16 mDeviceProvisioned[] = L"DeviceProvisioned";
 STATIC CONST CHAR16 mDeviceCertVariableName[] = L"ManufacturerDeviceCert";
 STATIC CONST CHAR16 mSmbiosSerialNumberName[] = L"SystemSerialNumber1";
 
@@ -85,6 +92,90 @@ RecieveBuffer(
     DEBUG((DEBUG_ERROR, "Checksum mismatch!\n Expected 0x%x\n Recieved 0x%x\n",
            hostsum, checksum));
     return EFI_CRC_ERROR;
+  }
+
+  return EFI_SUCCESS;
+}
+
+EFI_STATUS
+EFIAPI
+ProvisionedCheck()
+{
+  EFI_STATUS Status;
+  UINTN DataSize;
+
+  DataSize = 0;
+  Status = gRT->GetVariable (
+                  (CHAR16*) mDeviceProvisioned,
+                  &ProvisioningGuid,
+                  NULL,
+                  &DataSize,
+                  NULL
+                  );
+
+  DEBUG((DEBUG_ERROR, "%a: Status: 0x%x\n", __FUNCTION__, Status));
+
+  if (Status == EFI_BUFFER_TOO_SMALL) {
+      return EFI_SUCCESS;
+  }
+  return EFI_NOT_READY;
+}
+
+EFI_STATUS
+EFIAPI
+ProvisionedSet()
+{
+  EFI_STATUS Status;
+  UINT8 Data;
+
+  Data = 1;
+  Status = gRT->SetVariable (
+                  (CHAR16 *) mDeviceProvisioned,
+                  &ProvisioningGuid,
+                  EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS,
+                  1,
+                  (VOID *)&Data
+                  );
+
+  return Status;
+}
+
+EFI_STATUS
+EFIAPI
+RemoteHostExists()
+{
+  UINT32 hostresponse;
+  UINT8* tempptr;
+  UINTN bytesread;
+  UINT32 i;
+  EFI_TIME time1;
+  UINTN time1epoch;
+  EFI_TIME time2;
+  UINTN time2epoch;
+  EFI_STATUS Status;
+
+  SEND_REQUEST_TO_HOST("MFG:hostcheck\r\n");
+
+  Status = gRT->GetTime (&time1, NULL);
+
+  time1epoch = EfiTimeToEpoch(&time1);
+  while(SerialPortPoll() == FALSE) {
+    gRT->GetTime (&time2, NULL);
+    time2epoch = EfiTimeToEpoch(&time2);
+    if(time2epoch - time1epoch > 5)
+      return EFI_NO_RESPONSE;
+  }
+
+  //Recieve the 4-byte flag from the host.
+  tempptr = (UINT8*) &hostresponse;
+  for(i = 4, bytesread = 0; i > 0;) {
+    bytesread = SerialPortRead(tempptr, i);
+    i -= bytesread;
+    tempptr += bytesread;
+  }
+
+  if (hostresponse != 0x4D464748) {
+    return EFI_NO_RESPONSE;
   }
 
   return EFI_SUCCESS;
@@ -155,7 +246,7 @@ RecieveCrossSignedCert()
 
   Status = gRT->SetVariable (
                   (CHAR16 *)mDeviceCertVariableName,
-                  &gEfiCallerIdGuid,
+                  &ProvisioningGuid,
                   EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS,
                   certlen,
                   (VOID *)certptr
@@ -193,7 +284,7 @@ RecieveSmbiosValues()
 
   Status = gRT->SetVariable (
                   (CHAR16 *)mSmbiosSerialNumberName,
-                  &gEfiCallerIdGuid,
+                  &ProvisioningGuid,
                   EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS | EFI_VARIABLE_RUNTIME_ACCESS,
                   smbioslen,
                   (VOID *)smbiosptr
@@ -224,6 +315,20 @@ ProvisioningInitialize (
 {
   EFI_STATUS Status;
 
+  Status = ProvisionedCheck();
+  if (Status == EFI_SUCCESS) {
+    DEBUG((DEBUG_ERROR, "Device already provisioned!\n"));
+    return Status;
+  }
+
+  DEBUG((DEBUG_ERROR, "Device unprovisioned, checking for host!\n"));
+  Status = RemoteHostExists();
+  if (EFI_ERROR(Status)) {
+    SEND_REQUEST_TO_HOST("MFG:remotehostfail\r\n");
+    DEBUG((DEBUG_ERROR, "RemoteHostExists failed. 0x%x\n", Status));
+    return Status;
+  }
+
   Status = TransmitEKCertificate();
   if (EFI_ERROR(Status)) {
     SEND_REQUEST_TO_HOST("MFG:ekcertfail\r\n");
@@ -244,6 +349,15 @@ ProvisioningInitialize (
     DEBUG((DEBUG_ERROR, "RecieveSmbiosValues failed. 0x%x\n", Status));
     return Status;
   }
+
+  Status = ProvisionedSet();
+  if (EFI_ERROR(Status)) {
+    SEND_REQUEST_TO_HOST("MFG:provisionedfail\r\n");
+    DEBUG((DEBUG_ERROR, "ProvisionedSet failed. 0x%x\n", Status));
+    return Status;
+  }
+
+  SEND_REQUEST_TO_HOST("MFG:success\r\n");
 
   DEBUG((DEBUG_WARN, "%a exit\n", __FUNCTION__));
   return Status;

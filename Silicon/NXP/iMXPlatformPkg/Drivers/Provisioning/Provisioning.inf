@@ -33,6 +33,7 @@
   IoLib
   UefiDriverEntryPoint
   UefiLib
+  TimeBaseLib
 
 [Guids]
 
