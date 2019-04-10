@@ -502,11 +502,11 @@ GetImx6SerialNumber (
 EFI_GUID ProvisioningGuid =
 { 0x72096f5b, 0x2ac7, 0x4e6d, { 0xa7, 0xbb, 0xbf, 0x94, 0x7d, 0x67, 0x34, 0x15 } };
 
-STATIC CONST CHAR16          mSystemSerialNumber[] = L"SystemSerialNumber";
-STATIC CONST CHAR8           SystemSerialNumber[] = "SerialNumberFromUEFIVars\0";
+STATIC CONST CHAR16  mSystemSerialNumber[] = L"SmbiosSystemSerialNumber";
+STATIC CONST CHAR8   SystemSerialNumber[] = "SerialNumberFromUEFIVars\0";
 
-STATIC CONST CHAR16          mSystemSkuNumber[] = L"SystemSkuNumber";
-STATIC CONST CHAR8           SystemSkuNumber[] = "ActualSkuFromUEFIVars\0";
+STATIC CONST CHAR16  mSystemSkuNumber[] = L"SmbiosSystemSkuNumber";
+STATIC CONST CHAR8   SystemSkuNumber[] = "ActualSkuFromUEFIVars\0";
 
 EFI_STATUS
 RetrieveSmbiosVariable (

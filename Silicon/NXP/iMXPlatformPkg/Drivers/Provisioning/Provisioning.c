@@ -40,7 +40,7 @@ EFI_GUID ProvisioningGuid =
 
 STATIC CONST CHAR16 mDeviceProvisioned[] = L"DeviceProvisioned";
 STATIC CONST CHAR16 mDeviceCertVariableName[] = L"ManufacturerDeviceCert";
-STATIC CONST CHAR16 mSmbiosSerialNumberName[] = L"SystemSerialNumber1";
+STATIC CONST CHAR16 mSmbiosSystemSerialNumberName[] = L"SmbiosSystemSerialNumber";
 
 #define SEND_REQUEST_TO_HOST(msg) SerialPortWrite ((UINT8*)msg, AsciiStrLen (msg))
 
@@ -258,6 +258,7 @@ EFIAPI
 TransmitEKCertificate ()
 {
   UINT32             i;
+  UINT32             Length;
   UINT32             SendUint32;
   EFI_STATUS         Status;
   EFI_TCG2_PROTOCOL  *Tcg2Protocol;
@@ -288,13 +289,13 @@ TransmitEKCertificate ()
     return EFI_NOT_FOUND;
   }
 
-  SEND_REQUEST_TO_HOST ("MFG:ekcert\r\n");
+  Length = SwapBytes32 (((TPM2_RESPONSE_HEADER*)TpmOut)->paramSize);
 
-  SendUint32 = EKCERT_SZ;
-  SerialPortWrite ((UINT8*)&SendUint32, 4);
-  SerialPortWrite ((TpmOut+sizeof(TPM2_RESPONSE_HEADER)), EKCERT_SZ);
-  for (i = 0, SendUint32 = 0; i < EKCERT_SZ; i++) {
-    SendUint32 += (TpmOut+sizeof(TPM2_RESPONSE_HEADER))[i];
+  SEND_REQUEST_TO_HOST ("MFG:ekcert\r\n");
+  SerialPortWrite ((UINT8*)&Length, 4);
+  SerialPortWrite (TpmOut, Length);
+  for (i = 0, SendUint32 = 0; i < Length; i++) {
+    SendUint32 += TpmOut[i];
   }
   SerialPortWrite ((UINT8*)&SendUint32, 4);
 
@@ -367,13 +368,13 @@ RecieveSmbiosValues ()
   UINT8*      SmbiosPtr;
   EFI_STATUS  Status;
 
-  Status = RecieveBuffer ("MFG:smbiosserialreq\r\n", &SmbiosPtr, &SmbiosLen);
+  Status = RecieveBuffer ("MFG:smbiossystemserial\r\n", &SmbiosPtr, &SmbiosLen);
   if (EFI_ERROR (Status)) {
     goto cleanup;
   }
 
   Status = gRT->SetVariable (
-                  (CHAR16 *)mSmbiosSerialNumberName,
+                  (CHAR16 *)mSmbiosSystemSerialNumberName,
                   &ProvisioningGuid,
                   EFI_VARIABLE_NON_VOLATILE | EFI_VARIABLE_BOOTSERVICE_ACCESS |
                   EFI_VARIABLE_RUNTIME_ACCESS,
@@ -385,7 +386,7 @@ RecieveSmbiosValues ()
     DEBUG ((
       DEBUG_ERROR,
       "Provisioning: Failed to save %s variable, Status = %r\n",
-      mSmbiosSerialNumberName,
+      mSmbiosSystemSerialNumberName,
       Status
       ));
   }
@@ -429,35 +430,35 @@ ProvisioningInitialize (
   DEBUG ((DEBUG_ERROR, "Device unprovisioned, checking for host!\n"));
   Status = RemoteHostExists ();
   if (EFI_ERROR (Status)) {
-    SEND_REQUEST_TO_HOST ("MFG:remotehostfail\r\n");
+    SEND_REQUEST_TO_HOST ("MFGF:remotehost\r\n");
     DEBUG ((DEBUG_ERROR, "RemoteHostExists failed. 0x%x\n", Status));
     return Status;
   }
 
   Status = TransmitEKCertificate ();
   if (EFI_ERROR (Status)) {
-    SEND_REQUEST_TO_HOST ("MFG:ekcertfail\r\n");
+    SEND_REQUEST_TO_HOST ("MFGF:ekcert\r\n");
     DEBUG ((DEBUG_ERROR, "TransmitEKCertificate failed. 0x%x\n", Status));
     return Status;
   }
 
   Status = RecieveCrossSignedCert ();
   if (EFI_ERROR (Status)) {
-    SEND_REQUEST_TO_HOST ("MFG:devicecertfail\r\n");
+    SEND_REQUEST_TO_HOST ("MFGF:devicecert\r\n");
     DEBUG ((DEBUG_ERROR, "RecieveCrossSignedCert failed. 0x%x\n", Status));
     return Status;
   }
 
   Status = RecieveSmbiosValues ();
   if (EFI_ERROR (Status)) {
-    SEND_REQUEST_TO_HOST ("MFG:smbiosfail\r\n");
+    SEND_REQUEST_TO_HOST ("MFGF:smbios\r\n");
     DEBUG ((DEBUG_ERROR, "RecieveSmbiosValues failed. 0x%x\n", Status));
     return Status;
   }
 
   Status = ProvisionedSet ();
   if (EFI_ERROR (Status)) {
-    SEND_REQUEST_TO_HOST ("MFG:provisionedfail\r\n");
+    SEND_REQUEST_TO_HOST ("MFGF:provisioned\r\n");
     DEBUG ((DEBUG_ERROR, "ProvisionedSet failed. 0x%x\n", Status));
     return Status;
   }
