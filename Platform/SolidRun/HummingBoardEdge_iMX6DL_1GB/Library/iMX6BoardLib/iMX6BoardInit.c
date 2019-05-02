@@ -1074,7 +1074,7 @@ VOID SdhcInit ()
   // SD2_DATA3: GPIO1_IO12
   ImxGpioDirection(IMX_GPIO_BANK1, 12, IMX_GPIO_DIR_INPUT);
   DEBUG ((EFI_D_INIT, "SdhcInit2 DL SD2_DAT3 GPIO1_IO12 _DIR_INPUT\r\n"));
-
+/*
   //
   // uSDHC3: eMMC Socket
   //
@@ -1089,6 +1089,7 @@ VOID SdhcInit ()
   ImxPadConfig(IMX_PAD_SD3_DAT5, IMX_PAD_CFG_SD3_DAT5_SD3_DATA5);
   ImxPadConfig(IMX_PAD_SD3_DAT6, IMX_PAD_CFG_SD3_DAT6_SD3_DATA6);
   ImxPadConfig(IMX_PAD_SD3_DAT7, IMX_PAD_CFG_SD3_DAT7_SD3_DATA7);
+  */
   DEBUG((EFI_D_INIT,"--Sdhc2Init DL\r\n"));
 }
 
