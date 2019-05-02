@@ -145,8 +145,8 @@ giMXPlatformTokenSpaceGuid.PcdSdhc3Enable|FALSE
 #
 # UART initialization required
 #
-giMXPlatformTokenSpaceGuid.PcdSerialRegisterBase|0x02020000   # UART1
-giMXPlatformTokenSpaceGuid.PcdKdUartInstance|1                # UART1
+giMXPlatformTokenSpaceGuid.PcdSerialRegisterBase|0x021E8000   # UART2
+giMXPlatformTokenSpaceGuid.PcdKdUartInstance|2                # UART2
 
 #
 # GPIO reset pin (PERST)
