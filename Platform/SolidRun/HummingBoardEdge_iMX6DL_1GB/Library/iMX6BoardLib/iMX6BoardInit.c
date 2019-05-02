@@ -977,7 +977,7 @@ VOID ImxClkPwrInit ()
   status = ImxClkPwrIpuDIxEnable();
   ASSERT_EFI_ERROR (status);
   DEBUG ((EFI_D_INIT, "ImxClkPwrInit DL will call ImxClkPwrValidateClocks()\r\n"));
-  status = ImxClkPwrValidateClocks();
+//  status = ImxClkPwrValidateClocks();
   ASSERT_EFI_ERROR(status);
   DEBUG ((EFI_D_INIT, "--ImxClkPwrInit DL\r\n"));
 }
@@ -1099,6 +1099,7 @@ VOID SdhcInit ()
 **/
 VOID EhciInit ()
 {
+	#if 0
     DEBUG ((EFI_D_INIT, "++EhciInit() DL\r\n"));
     //
     // Pin-mux OTG Over Current
@@ -1131,14 +1132,16 @@ VOID EhciInit ()
         IoMuxGpr1Reg.USB_OTG_ID_SEL = IMX_IOMUXC_GPR1_USB_OTG_ID_SEL_GPIO_1;
         MmioWrite32((UINTN)&IoMuxGprRegsPtr->GPR1, IoMuxGpr1Reg.AsUint32);
     }
-
+#endif
+#if 1
     //
     // Pin-mux and enable USBH1 power
     //
     ImxPadConfig(IMX_PAD_GPIO_0, IMX_PAD_CFG_GPIO0_GPIO1_IO0_USBH1_PWR);
     ImxGpioDirection(IMX_GPIO_BANK1, 0, IMX_GPIO_DIR_OUTPUT);
     ImxGpioWrite(IMX_GPIO_BANK1, 0, IMX_GPIO_HIGH);
-
+#endif
+#if 1
     //
     // Initialize PHY0 (OTG)
     //
@@ -1148,6 +1151,7 @@ VOID EhciInit ()
     // Initialize PHY1 (USBH1)
     //
     ImxUsbPhyInit(IMX_USBPHY1);
+#endif
 }
 
 /**
