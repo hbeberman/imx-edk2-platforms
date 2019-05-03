@@ -65,6 +65,9 @@
   giMX6TokenSpaceGuid.PcdFrameBufferBase
   giMX6TokenSpaceGuid.PcdFrameBufferSize
   giMX6TokenSpaceGuid.PcdLvdsEnable
+  giMX6TokenSpaceGuid.PcdUseDefaultX2LvdsPanel
+  giMX6TokenSpaceGuid.PcdGopHorizontalFlip
+  giMX6TokenSpaceGuid.PcdGopVerticalFlip
 
 [Depex]
   gEfiCpuArchProtocolGuid AND gEfiTimerArchProtocolGuid

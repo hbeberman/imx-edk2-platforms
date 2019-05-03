@@ -154,3 +154,10 @@ giMXPlatformTokenSpaceGuid.PcdKdUartInstance|2                # UART2
 giMX6TokenSpaceGuid.PcdPcieResetGpio|TRUE
 giMX6TokenSpaceGuid.PcdPcieResetGpioBankNumber|2
 giMX6TokenSpaceGuid.PcdPcieResetGpioIoNumber|11
+
+[PcdsFeatureFlag.common]
+giMX6TokenSpaceGuid.PcdLvdsEnable|TRUE
+giMX6TokenSpaceGuid.PcdUseDefaultX2LvdsPanel|TRUE
+giMX6TokenSpaceGuid.PcdGopHorizontalFlip|TRUE
+giMX6TokenSpaceGuid.PcdGopVerticalFlip|TRUE
+
