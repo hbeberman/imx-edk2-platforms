@@ -953,35 +953,6 @@ static void SetupAudio ()
     InitializeAudmux (AUDMUX_PORT7, AUDMUX_PORT5);
 }
 
-/**
-  Initialize clock and power for modules on the iMX6 DualLite SOM.
-  Gate unused clocks is not called since it is Quad-Dual specific and not applcable to SDL
-**/
-VOID ImxClkPwrInit ()
-{
-  EFI_STATUS status;
-  DEBUG ((EFI_D_INIT, "++ImxClkPwrInit DL\r\n"));
-
-  //GateUnusedClocks();
-  //DEBUG ((EFI_D_INIT, "ImxClkPwrInit DL gated unused clocks\r\n"));
-  //UngateRequiredClocks();
-  //DEBUG ((EFI_D_INIT, "ImxClkPwrInit DL ungated required clocks\r\n"));
-
-  if (FeaturePcdGet (PcdGpuEnable)) 
-  {
-    DEBUG ((EFI_D_INIT, "ImxClkPwrInit DL will call ImxClkPwrGpuEnable()\r\n"));
-    status = ImxClkPwrGpuEnable ();
-    ASSERT_EFI_ERROR (status);
-  }
-  DEBUG ((EFI_D_INIT, "ImxClkPwrInit DL will call ImxClkPwrIpuDIxEnable()\r\n"));
-  status = ImxClkPwrIpuDIxEnable();
-  ASSERT_EFI_ERROR (status);
-  DEBUG ((EFI_D_INIT, "ImxClkPwrInit DL will call ImxClkPwrValidateClocks()\r\n"));
-//  status = ImxClkPwrValidateClocks();
-  ASSERT_EFI_ERROR(status);
-  DEBUG ((EFI_D_INIT, "--ImxClkPwrInit DL\r\n"));
-}
-
 #define DEBUG_SDHC_PINMUXING  0
 
 /**
@@ -1406,7 +1377,6 @@ ArmPlatformInitialize(IN UINTN MpId)
     }
 
     DEBUG ((DEBUG_INIT, "ArmPlatformInitialize(DL %Xh) primary core - will proceed with HW initalization\r\n", MpId));
-	  ImxClkPwrInit ();
 
   // initialize default UEFI debug port early so we can use its debug output
 
