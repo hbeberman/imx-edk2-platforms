@@ -240,7 +240,7 @@
   BaseCryptLib|CryptoPkg/Library/BaseCryptLib/BaseCryptLib.inf
   OpteeClientApiLib|Platform/Microsoft/OpteeClientPkg/Library/OpteeClientApiLib/OpteeClientApiLib.inf
   HashLib|SecurityPkg/Library/HashLibBaseCryptoRouter/HashLibBaseCryptoRouterDxe.inf
-  Tpm2DeviceLibOptee|Platform/Microsoft/OpteeClientPkg/Library/Tpm2DeviceLibOptee/Tpm2DeviceLibOptee.inf
+  Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibTcg2/Tpm2DeviceLibTcg2.inf
   Tpm2CommandLib|SecurityPkg/Library/Tpm2CommandLib/Tpm2CommandLib.inf
 !endif
 
@@ -815,7 +815,7 @@
   # Current setting:
   #   TREE_FLAG_NO_PPI_CLEAR
   #
-  #gEfiSecurityPkgTokenSpaceGuid.PcdPPDefaultTrEEFlags|0x02
+  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2PhysicalPresenceFlags|0x0
 
   ## Indicates whether or not the Tcg2Dxe should measure CRTM instead of PEI.
   # TRUE means the Tcg2Dxe will measure CRTM.
@@ -823,7 +823,7 @@
   #gEfiSecurityPkgTokenSpaceGuid.PcdLateMeasureCRTM|TRUE
 
 [PcdsDynamicExDefault.common.DEFAULT]
-  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2HashAlgorithmBitmap|0x0
+  gEfiSecurityPkgTokenSpaceGuid.PcdTcg2HashAlgorithmBitmap|0x0F
 
 ########################
 #
@@ -937,7 +937,10 @@
   #
   # Provisioning
   #
-  Silicon/NXP/iMXPlatformPkg/Drivers/Provisioning/Provisioning.inf
+  Silicon/NXP/iMXPlatformPkg/Drivers/Provisioning/Provisioning.inf {
+    <LibraryClasses>
+      Tpm2DeviceLib|SecurityPkg/Library/Tpm2DeviceLibTcg2/Tpm2DeviceLibTcg2.inf
+  }
 
   #
   # USB Stack
@@ -1002,6 +1005,8 @@
     <LibraryClasses>
       NULL|SecurityPkg/Library/HashInstanceLibSha1/HashInstanceLibSha1.inf
       NULL|SecurityPkg/Library/HashInstanceLibSha256/HashInstanceLibSha256.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha384/HashInstanceLibSha384.inf
+      NULL|SecurityPkg/Library/HashInstanceLibSha512/HashInstanceLibSha512.inf
       Tpm2DeviceLib|Platform/Microsoft/OpteeClientPkg/Library/Tpm2DeviceLibOptee/Tpm2DeviceLibOptee.inf
 
     <PcdsFixedAtBuild>
